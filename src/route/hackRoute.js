@@ -16,7 +16,7 @@ router.post("/createhack", auth, async (req, res) => {
   }
 });
 
-router.get("/hacks/:type", async (req, res) => {
+router.get("/hacks/type/:type", async (req, res) => {
   try {
     const isTrending = req.params.type === "trending" ? true : false;
     const hacks = await Hack.find({ trending: isTrending });
@@ -27,7 +27,7 @@ router.get("/hacks/:type", async (req, res) => {
 });
 
 // GET /hacks/:id
-router.get("/hacks/:slug", async (req, res) => {
+router.get("/hacks/slug/:slug", async (req, res) => {
   try {
     const hack = await Hack.findOne({ slug: req.params.slug });
     if (!hack) return res.status(404).send({ message: "Hack not found" });
