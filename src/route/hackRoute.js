@@ -16,12 +16,13 @@ router.post("/createhack", auth, async (req, res) => {
   }
 });
 
-router.get("/hacks", async (req, res) => {
+router.get("/hacks/:type", async (req, res) => {
   try {
-    const hacks = await Hack.find({});
+    const isTrending = req.params.type === "trending" ? true : false;
+    const hacks = await Hack.find({ trending: isTrending });
     res.status(200).send(hacks);
   } catch (e) {
-    res.status(404).send();
+    res.status(500).send();
   }
 });
 
