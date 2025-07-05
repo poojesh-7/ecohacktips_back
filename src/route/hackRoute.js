@@ -16,7 +16,14 @@ router.post("/createhack", auth, async (req, res) => {
   }
 });
 
-router.get("/hacks", async (req, res) => {});
+router.get("/hacks", async (req, res) => {
+  try {
+    const hacks = await Hack.find({});
+    res.status(200).send(hacks);
+  } catch (e) {
+    res.status(404).send();
+  }
+});
 
 // GET /hacks/:id
 router.get("/hacks/:slug", async (req, res) => {
