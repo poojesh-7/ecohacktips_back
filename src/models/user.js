@@ -146,6 +146,19 @@ userSchema.statics.userLogin = async function (
     };
   }
 
+  if (existingUser.googleId && !existingUser.password) {
+    throw {
+      type: "conflict",
+      messages: [
+        {
+          field: "email",
+          message:
+            "Account was created using Google. Please use Google login or set a password in account settings.",
+        },
+      ],
+    };
+  }
+
   const isMatch = await bcrypt.compare(password, existingUser.password);
   if (!isMatch) {
     throw {
