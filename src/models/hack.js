@@ -78,6 +78,13 @@ const hackSchema = new mongoose.Schema({
   },
 });
 
+hackSchema.virtual("user_details", {
+  ref: "User",
+  localField: "userId",
+  foreignField: "_id",
+  justOne: true,
+});
+
 hackSchema.pre("validate", async function (next) {
   // Only generate slug if title changed or not set yet
   if (!this.isModified("title")) return next();

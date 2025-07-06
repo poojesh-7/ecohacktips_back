@@ -29,9 +29,14 @@ router.get("/hacks/type/:type", async (req, res) => {
 // GET /hacks/:id
 router.get("/hacks/slug/:slug", async (req, res) => {
   try {
-    const hack = await Hack.findOne({ slug: req.params.slug });
+    const hack = await Hack.findOne({ slug: req.params.slug }).populate({
+      path: "user_details",
+      select: "username email -_id",
+    });
+
+    const result = hack.toObject({ virtuals: true });
     if (!hack) return res.status(404).send({ message: "Hack not found" });
-    res.status(200).json(hack);
+    res.status(200).json(result);
   } catch (e) {
     res.status(500).json({ message: "Error fetching hack", error: e.message });
   }
