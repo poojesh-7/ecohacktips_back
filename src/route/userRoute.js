@@ -3,6 +3,9 @@ const User = require("../models/user");
 const parseMongooseError = require("../utils/parseMongooseError");
 const auth = require("../middleware/auth");
 
+const { OAuth2Client } = require("google-auth-library");
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -35,13 +38,47 @@ router.post("/register", async (req, res) => {
 
 router.post("/oauth", async (req, res) => {
   try {
-    const { email, googleId, username, password } = req.body;
-    const user = await User.userLogin(email, googleId, username, password);
-    const token = await user.generateAuth();
+    const { email, password, googleId } = req.body;
 
+    let user;
+
+    if (googleId) {
+      // ✅ Handle Google login
+      const ticket = await client.verifyIdToken({
+        idToken: googleId,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload();
+      const emailFromGoogle = payload.email;
+      const usernameFromGoogle = payload.name;
+
+      user = await User.userLogin(
+        emailFromGoogle,
+        googleId,
+        usernameFromGoogle
+      );
+    } else {
+      // ✅ Handle email-password login
+      if (!email || !password) {
+        return res.status(400).json({
+          type: "validation",
+          messages: ["Email and password are required"],
+        });
+      }
+
+      user = await User.userLogin(email, null, null, password);
+    }
+
+    const token = await user.generateAuth();
     res.status(201).json({ user, token });
   } catch (error) {
-    res.status(400).json(error);
+    console.error("OAuth login error:", error);
+    res.status(400).json(
+      error.type
+        ? error // structured app error
+        : { type: "server", messages: ["Something went wrong"] } // fallback
+    );
   }
 });
 
