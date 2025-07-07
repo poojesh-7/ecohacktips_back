@@ -7,7 +7,12 @@ const auth = require("../middleware/auth");
 
 router.post("/createhack", auth, async (req, res) => {
   try {
-    const hack = new Hack({ ...req.body, userId: req.user.id });
+    const hack = new Hack({
+      ...req.body,
+      userId: req.user.id,
+      username: req.user.username,
+      email: req.user.email,
+    });
     await hack.save();
     await User.findByIdAndUpdate(req.user.id, { $inc: { ecoPoints: 10 } });
     res.status(201).json({ message: "Hack posted", hack });
@@ -20,6 +25,7 @@ router.get("/hacks/type/:type", async (req, res) => {
   try {
     const isTrending = req.params.type === "trending" ? true : false;
     const hacks = await Hack.find({ trending: isTrending });
+
     res.status(200).send(hacks);
   } catch (e) {
     res.status(500).send();
@@ -29,14 +35,10 @@ router.get("/hacks/type/:type", async (req, res) => {
 // GET /hacks/:id
 router.get("/hacks/slug/:slug", async (req, res) => {
   try {
-    const hack = await Hack.findOne({ slug: req.params.slug }).populate({
-      path: "user_details",
-      select: "username email -_id",
-    });
+    const hack = await Hack.findOne({ slug: req.params.slug });
 
-    const result = hack.toObject({ virtuals: true });
     if (!hack) return res.status(404).send({ message: "Hack not found" });
-    res.status(200).json(result);
+    res.status(200).json(hack);
   } catch (e) {
     res.status(500).json({ message: "Error fetching hack", error: e.message });
   }
