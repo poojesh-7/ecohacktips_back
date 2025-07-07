@@ -193,7 +193,8 @@ userSchema.methods.toJSON = function () {
   let user = this;
   let userObject = user.toObject();
   delete userObject.password;
-  delete userObject.token;
+  delete userObject.tokens;
+  delete userObject.googleId;
   return userObject;
 };
 
