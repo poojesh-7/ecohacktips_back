@@ -124,17 +124,42 @@ router.post("/slug/:slug/dislike", auth, async (req, res) => {
 
 router.patch("/update/:slug", auth, async (req, res) => {
   try {
-    const hack = await Hack.findOneAndUpdate(
-      { slug: req.params.slug, userId: req.user.id },
-      req.body,
-      { new: true, runValidators: true }
+    const hack = await Hack.findOne({ slug: req.params.slug });
+
+    if (!hack) throw new Error("Hack not found");
+
+    if (hack.userId.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .send({ error: "Not authorized to update this hack" });
+    }
+
+    const inputFields = [
+      "title",
+      "image",
+      "description",
+      "steps",
+      "tutorialLink",
+    ];
+    const updateFields = Object.keys(req.body);
+
+    const validFields = updateFields.every((field) =>
+      inputFields.includes(field)
     );
 
-    if (!hack) return res.status(404).json({ message: "Hack not found" });
+    if (!validFields) {
+      throw new Error("Invalid fields in update request");
+    }
 
-    res.json({ message: "Hack updated", hack });
-  } catch (err) {
-    res.status(400).json({ messages: parseMongooseError(err) });
+    updateFields.forEach((field) => {
+      hack[field] = req.body[field];
+    });
+
+    await hack.save();
+
+    res.status(200).send({ message: "Hack updated", hack });
+  } catch (e) {
+    res.status(400).send({ error: e.message });
   }
 });
 
