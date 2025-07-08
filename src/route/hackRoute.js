@@ -21,7 +21,7 @@ router.post("/createhack", auth, async (req, res) => {
   }
 });
 
-router.get("/hacks/type/:type", async (req, res) => {
+router.get("/type/:type", async (req, res) => {
   try {
     const isTrending = req.params.type === "trending" ? true : false;
     const hacks = await Hack.find({ trending: isTrending });
@@ -33,7 +33,7 @@ router.get("/hacks/type/:type", async (req, res) => {
 });
 
 // GET /hacks/:id
-router.get("/hacks/slug/:slug", async (req, res) => {
+router.get("/slug/:slug/view", async (req, res) => {
   try {
     const hack = await Hack.findOne({ slug: req.params.slug });
 
@@ -44,7 +44,7 @@ router.get("/hacks/slug/:slug", async (req, res) => {
   }
 });
 
-router.post("/hacks/:slug/like", auth, async (req, res) => {
+router.post("/slug/:slug/like", auth, async (req, res) => {
   try {
     const userId = req.user._id;
     const hack = await Hack.findOne({ slug: req.params.slug });
@@ -83,7 +83,7 @@ router.post("/hacks/:slug/like", auth, async (req, res) => {
   }
 });
 
-router.post("/hacks/:slug/dislike", auth, async (req, res) => {
+router.post("/slug/:slug/dislike", auth, async (req, res) => {
   try {
     const userId = req.user._id;
     const hack = await Hack.findOne({ slug: req.params.slug });
@@ -119,48 +119,6 @@ router.post("/hacks/:slug/dislike", auth, async (req, res) => {
     res
       .status(500)
       .json({ message: "Error toggling like", error: err.message });
-  }
-});
-
-router.post("/hacks/:id/dislike", auth, async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const hack = await Hack.findById(req.params.id);
-
-    if (!hack) return res.status(404).json({ message: "Hack not found" });
-
-    const alreadyDisliked = hack.dislikedBy.includes(userId);
-
-    if (alreadyDisliked) {
-      // Remove dislike
-      hack.dislikes -= 1;
-      hack.dislikedBy.pull(userId);
-    } else {
-      // Add dislike
-      hack.dislikes += 1;
-      hack.dislikedBy.push(userId);
-
-      // Remove like if already liked
-      if (hack.likedBy.includes(userId)) {
-        hack.likes -= 1;
-        hack.likedBy.pull(userId);
-      }
-    }
-
-    await hack.save();
-
-    res.status(200).json({
-      message: alreadyDisliked ? "Post undisliked" : "Post disliked",
-      likes: hack.likes,
-      dislikes: hack.dislikes,
-      likedBy: hack.likedBy,
-      dislikedBy: hack.dislikedBy,
-    });
-  } catch (err) {
-    res.status(500).json({
-      message: "Error toggling dislike",
-      error: err.message,
-    });
   }
 });
 
