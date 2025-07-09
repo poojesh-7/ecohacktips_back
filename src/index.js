@@ -9,7 +9,7 @@ const hackRouter = require("./route/hackRoute");
 
 app.use(
   cors({
-    origin: "https://ecohacks-zeta.vercel.app", // ✅ Only allow this origin
+    origin: "https://ecohackstips.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
